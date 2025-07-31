@@ -66,9 +66,30 @@ def document_to_event(document):
 # Async placeholder for meeting prep summary generation
 from typing import Any
 import asyncio
+from utils.gemini_api import generate_gemini_summary
 
 async def generate_meeting_prep(title: str, start: str, description: str, attendees: Any) -> list:
-    await asyncio.sleep(0)  # Simulate async call
+    prompt = f"""
+You are a smart meeting assistant. Based on the following event information, generate a concise, professional bullet-point summary for meeting preparation. Use simple language suitable for quick review before joining a meeting.
+
+Title: {title}
+Date & Time: {start}
+Description: {description}
+Attendees: {', '.join(attendees) if attendees else 'None'}
+
+Output format:
+- Bullet point summary of main topics
+- Any required pre-reading or actions
+- Key stakeholders or participants to keep in mind (if mentioned)
+- Questions the attendee should be ready to answer or ask (make these specific to the description)
+"""
+    try:
+        summary = await generate_gemini_summary(prompt)
+        if summary:
+            return [line for line in summary.split('\n') if line.strip()]
+    except Exception as e:
+        # Fallback to default points if Gemini API fails
+        pass
     points = [
         f"Main topic: {title} (Scheduled for {start})",
         f"Review meeting description: {description if description else 'No description provided.'}",
@@ -253,5 +274,14 @@ async def update_summary_points(event_id: str, summary_points: List[str]):
     return {"message": "Summary points updated"}
 
 if __name__ == "__main__":
+    # Ensure logging level is set to INFO for all loggers
+    import logging
+    logging.basicConfig(level=logging.INFO)
+    # Log whether GEMINI_API_KEY is loaded (do not print the key itself)
+    from utils.gemini_api import GEMINI_API_KEY
+    if GEMINI_API_KEY:
+        logging.info("GEMINI_API_KEY loaded from environment.")
+    else:
+        logging.warning("GEMINI_API_KEY is NOT set in environment variables!")
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=4000)
