@@ -3,20 +3,23 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 from bson import ObjectId
 
+from pydantic import GetCoreSchemaHandler
+from pydantic_core import core_schema
+
 class PyObjectId(ObjectId):
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        if not ObjectId.is_valid(v):
+    def __get_pydantic_core_schema__(cls, source_type, handler: GetCoreSchemaHandler):
+        from pydantic_core import core_schema
+        def validate(v):
+            if isinstance(v, ObjectId):
+                return v
+            if isinstance(v, str) and ObjectId.is_valid(v):
+                return ObjectId(v)
             raise ValueError("Invalid ObjectId")
-        return ObjectId(v)
-
-    @classmethod
-    def __modify_schema__(cls, field_schema):
-        field_schema.update(type="string")
+        return core_schema.no_info_after_validator_function(
+            validate,
+            core_schema.str_schema()
+        )
 
 class EventBase(BaseModel):
     title: str
@@ -39,7 +42,7 @@ class EventBase(BaseModel):
         json_encoders = {ObjectId: str}
 
 class EventDB(EventBase):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    id: str = Field(alias="_id")
 
 class EventCreate(EventBase):
     pass

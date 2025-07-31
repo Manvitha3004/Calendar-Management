@@ -93,6 +93,8 @@ async def get_events():
             document["end"] = format_datetime(to_utc(datetime.fromisoformat(end_val)))
         else:
             document["end"] = format_datetime(to_utc(end_val))
+        if "_id" in document:
+            document["_id"] = str(document["_id"])
         events.append(EventDB(**document))
     return events
 
@@ -118,6 +120,8 @@ async def get_agenda():
             document["end"] = format_datetime(to_utc(datetime.fromisoformat(end_val)))
         else:
             document["end"] = format_datetime(to_utc(end_val))
+        if "_id" in document:
+            document["_id"] = str(document["_id"])
         events.append(EventDB(**document))
     return events
 
