@@ -136,112 +136,116 @@ const EventModal = ({ isOpen, eventData, onSave, onDelete, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white rounded p-6 w-96 max-h-[90vh] overflow-auto">
-        <h2 className="text-xl font-bold mb-4">{event.id ? 'Edit Event' : 'Create Event'}</h2>
-        <label className="block mb-2">
-          Title
-          <input
-            type="text"
-            name="title"
-            value={event.title}
-            onChange={handleChange}
-            className="w-full border rounded px-2 py-1"
-          />
-        </label>
-        <label className="block mb-2">
-          Start
-          <input
-            type="datetime-local"
-            name="start"
-            value={startInput}
-            onChange={(e) => {
-              setStartInput(e.target.value);
-            }}
-            className="w-full border rounded px-2 py-1"
-          />
-        </label>
-        <label className="block mb-2">
-          End
-          <input
-            type="datetime-local"
-            name="end"
-            value={endInput}
-            onChange={(e) => {
-              setEndInput(e.target.value);
-            }}
-            className="w-full border rounded px-2 py-1"
-          />
-        </label>
-        <label className="block mb-2">
-          Attendees (comma separated emails)
-          <input
-            type="text"
-            value={attendeesInput}
-            onChange={handleAttendeesChange}
-            className="w-full border rounded px-2 py-1"
-          />
-        </label>
-        <label className="block mb-2">
-          Reminders (comma separated minutes before event)
-          <input
-            type="text"
-            value={remindersInput}
-            onChange={handleRemindersChange}
-            className="w-full border rounded px-2 py-1"
-          />
-        </label>
-        <label className="block mb-2">
-          Recurrence (e.g. daily, weekly, monthly)
-          <input
-            type="text"
-            value={recurrenceInput}
-            onChange={handleRecurrenceChange}
-            className="w-full border rounded px-2 py-1"
-          />
-        </label>
-        <label className="block mb-2">
-          Meeting Link
-          <input
-            type="url"
-            value={meetingLinkInput}
-            onChange={handleMeetingLinkChange}
-            placeholder="https://zoom.us/..."
-            className="w-full border rounded px-2 py-1"
-          />
-        </label>
-        <label className="block mb-2">
-          Meeting Description
-          <textarea
-            value={meetingDescriptionInput}
-            onChange={handleMeetingDescriptionChange}
-            placeholder="Describe the meeting purpose, agenda, etc."
-            className="w-full border rounded px-2 py-1 resize-y"
-            rows={4}
-          />
-        </label>
-        <div className="flex justify-between mt-4">
-          <button
-            onClick={handleDelete}
-            disabled={!event.id}
-            className="bg-red-500 text-white px-4 py-2 rounded disabled:opacity-50"
-          >
-            Delete
-          </button>
-          <div>
+      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg max-h-[90vh] overflow-auto">
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">
+          {event.id ? 'Edit Event' : 'Create Event'}
+        </h2>
+        <form>
+          <label className="block mb-4">
+            <span className="text-gray-700 font-medium">Title</span>
+            <input
+              type="text"
+              name="title"
+              value={event.title || ''}
+              onChange={handleChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter event title"
+            />
+          </label>
+          <label className="block mb-4">
+            <span className="text-gray-700 font-medium">Start</span>
+            <input
+              type="datetime-local"
+              name="start"
+              value={startInput || ''}
+              onChange={(e) => setStartInput(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </label>
+          <label className="block mb-4">
+            <span className="text-gray-700 font-medium">End</span>
+            <input
+              type="datetime-local"
+              name="end"
+              value={endInput || ''}
+              onChange={(e) => setEndInput(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </label>
+          <label className="block mb-4">
+            <span className="text-gray-700 font-medium">Attendees (comma separated emails)</span>
+            <input
+              type="text"
+              value={attendeesInput || ''}
+              onChange={handleAttendeesChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., john@example.com, jane@example.com"
+            />
+          </label>
+          <label className="block mb-4">
+            <span className="text-gray-700 font-medium">Reminders (comma separated minutes before event)</span>
+            <input
+              type="text"
+              value={remindersInput || ''}
+              onChange={handleRemindersChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., 10, 30, 60"
+            />
+          </label>
+          <label className="block mb-4">
+            <span className="text-gray-700 font-medium">Recurrence (e.g., daily, weekly, monthly)</span>
+            <input
+              type="text"
+              value={recurrenceInput || ''}
+              onChange={handleRecurrenceChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., daily, weekly"
+            />
+          </label>
+          <label className="block mb-4">
+            <span className="text-gray-700 font-medium">Meeting Link</span>
+            <input
+              type="url"
+              value={meetingLinkInput || ''}
+              onChange={handleMeetingLinkChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="https://zoom.us/..."
+            />
+          </label>
+          <label className="block mb-4">
+            <span className="text-gray-700 font-medium">Meeting Description</span>
+            <textarea
+              value={meetingDescriptionInput || ''}
+              onChange={handleMeetingDescriptionChange}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+              rows={4}
+              placeholder="Describe the meeting purpose, agenda, etc."
+            />
+          </label>
+          <div className="flex justify-between mt-6">
             <button
-              onClick={onClose}
-              className="mr-2 px-4 py-2 rounded border border-gray-300"
+              onClick={handleDelete}
+              disabled={!event.id}
+              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 disabled:opacity-50"
             >
-              Cancel
+              Delete
             </button>
-            <button
-              onClick={handleSave}
-              className="bg-blue-500 text-white px-4 py-2 rounded"
-            >
-              Save
-            </button>
+            <div>
+              <button
+                onClick={onClose}
+                className="mr-2 px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+              >
+                Save
+              </button>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );

@@ -5,6 +5,8 @@ from datetime import datetime
 import logging
 import os
 from dotenv import load_dotenv
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
 
 # Load environment variables
 load_dotenv()
@@ -383,3 +385,37 @@ async def sync_emails(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to sync emails: {str(e)}")
+
+# Load Gmail API credentials
+CREDENTIALS_PATH = os.getenv("GOOGLE_CREDENTIALS_PATH")
+if not CREDENTIALS_PATH or not os.path.exists(CREDENTIALS_PATH):
+    raise RuntimeError("Google credentials file not found. Ensure GOOGLE_CREDENTIALS_PATH is set correctly.")
+
+@router.post("/email/sync")
+async def sync_emails():
+    try:
+        # Load credentials
+        creds = Credentials.from_authorized_user_file(CREDENTIALS_PATH, ["https://www.googleapis.com/auth/gmail.readonly"])
+        service = build("gmail", "v1", credentials=creds)
+
+        # Fetch emails
+        results = service.users().messages().list(userId="me", maxResults=10).execute()
+        messages = results.get("messages", [])
+
+        if not messages:
+            return {"message": "No emails found."}
+
+        email_data = []
+        for message in messages:
+            msg = service.users().messages().get(userId="me", id=message["id"]).execute()
+            email_data.append({
+                "id": msg["id"],
+                "snippet": msg.get("snippet", ""),
+                "subject": next((header["value"] for header in msg["payload"]["headers"] if header["name"] == "Subject"), "No Subject")
+            })
+
+        return {"message": "Emails synced successfully.", "emails": email_data}
+
+    except Exception as e:
+        logging.error(f"Failed to sync emails: {e}")
+        raise HTTPException(status_code=500, detail="Failed to sync emails.")

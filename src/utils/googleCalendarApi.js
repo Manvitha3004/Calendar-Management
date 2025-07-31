@@ -2,12 +2,12 @@ import { useAuth } from '../hooks/useAuth';
 
 const API_BASE = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
 
+function getAuthToken() {
+  return localStorage.getItem('auth_token') || localStorage.getItem('google_token');
+}
+
 async function authorizedFetch(url, options = {}) {
-  // Since this is a utility function outside React components, we cannot use the hook directly.
-  // Instead, we will access the token from localStorage or a global variable set by useAuth.
-  // Alternatively, we can export a function to set the token here.
-  // For now, get token from localStorage (assuming useAuth stores token there).
-  const token = localStorage.getItem('token');
+  const token = getAuthToken();
   if (!token) {
     throw new Error('No auth token available');
   }

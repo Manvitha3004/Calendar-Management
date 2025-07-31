@@ -14,6 +14,7 @@ import EmailList from './EmailList';
 import EmailDrafts from './EmailDrafts';
 import EmailReminders from './EmailReminders';
 import EmailStats from './EmailStats';
+import ToastNotification from '../UI/ToastNotification';
 
 const EmailDashboard = () => {
   const { token, isAuthenticated } = useAuth();
@@ -25,6 +26,8 @@ const EmailDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
+  const [syncing, setSyncing] = useState(false);
+  const [toast, setToast] = useState({ message: '', type: 'info' });
 
   useEffect(() => {
     fetchEmailData();
@@ -40,46 +43,69 @@ const EmailDashboard = () => {
       const emailData = await fetchEmails(userId, 50);
       if (emailData.status === 'success') {
         setEmails(emailData.emails || []);
+      } else {
+        throw new Error(emailData.message || 'Failed to fetch emails');
       }
 
       // Fetch drafts using centralized API
       const draftData = await fetchEmailDrafts(userId);
       if (draftData.status === 'success') {
         setDrafts(draftData.drafts || []);
+      } else {
+        throw new Error(draftData.message || 'Failed to fetch drafts');
       }
 
       // Fetch reminders using centralized API
       const reminderData = await fetchEmailReminders(userId);
       if (reminderData.status === 'success') {
         setReminders(reminderData.reminders || []);
+      } else {
+        throw new Error(reminderData.message || 'Failed to fetch reminders');
       }
 
       // Fetch stats using centralized API
       const statsData = await fetchEmailStats(userId);
       if (statsData.status === 'success') {
         setStats(statsData.stats);
+      } else {
+        throw new Error(statsData.message || 'Failed to fetch stats');
       }
 
       setLoading(false);
     } catch (error) {
       console.error('Error fetching email data:', error);
+      setError(error.message);
       setLoading(false);
     }
   };
 
   const handleSyncEmails = async () => {
     try {
-      setLoading(true);
+      setSyncing(true);
+      setToast({ message: 'Syncing emails...', type: 'info' });
       const data = await syncEmails(token, 50);
       if (data.status === 'success') {
-        alert('Email sync started! Check back in a few moments.');
-        setTimeout(fetchEmailData, 5000); // Refresh after 5 seconds
+        setToast({ message: 'Email sync started! Waiting for new emails...', type: 'success' });
+        // Poll for new emails every 5s, up to 30s
+        let attempts = 0;
+        const poll = async () => {
+          await fetchEmailData();
+          attempts++;
+          if (attempts < 6 && emails.length === 0) {
+            setTimeout(poll, 5000);
+          } else {
+            setSyncing(false);
+            setToast({ message: 'Sync complete!', type: 'success' });
+          }
+        };
+        poll();
+      } else {
+        setToast({ message: 'Failed to start email sync', type: 'error' });
+        setSyncing(false);
       }
     } catch (error) {
-      console.error('Error syncing emails:', error);
-      alert('Failed to sync emails');
-    } finally {
-      setLoading(false);
+      setToast({ message: 'Failed to sync emails', type: 'error' });
+      setSyncing(false);
     }
   };
 
@@ -132,6 +158,14 @@ const EmailDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
+      {toast.message && (
+        <ToastNotification
+          message={toast.message}
+          type={toast.type}
+          duration={2500}
+          onClose={() => setToast({ message: '', type: 'info' })}
+        />
+      )}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
@@ -140,13 +174,13 @@ const EmailDashboard = () => {
           </div>
           <button
             onClick={handleSyncEmails}
-            disabled={loading}
+            disabled={loading || syncing}
             className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
           >
-            {loading && (
+            {(loading || syncing) && (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
             )}
-            <span>Sync Emails</span>
+            <span>{syncing ? 'Syncing...' : 'Sync Emails'}</span>
           </button>
         </div>
       </div>
